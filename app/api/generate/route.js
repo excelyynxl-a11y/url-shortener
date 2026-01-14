@@ -8,6 +8,9 @@ export async function POST(request) {
     const db = client.db("likeitshort");
     const collection = db.collection("url");
 
+    console.log("Mongo URI:", process.env.MONGODB_URI);
+
+
     // check if short url exist
     const doc = await collection.findOne({shorturl: body.shorturl});
     if (doc) {
