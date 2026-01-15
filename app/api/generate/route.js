@@ -1,33 +1,71 @@
-import clientPromise from "@/lib/mongodb"
+// import clientPromise from "@/lib/mongodb"
+
+// export async function POST(request) {
+
+//     const body =await request.json();
+
+//     const client = await clientPromise;
+//     const db = client.db("likeitshort");
+//     const collection = db.collection("url");
+
+//     // check if short url exist
+//     const doc = await collection.findOne({shorturl: body.shorturl});
+//     if (doc) {
+//         return Response.json({ 
+//             success: false, 
+//             error: true,  
+//             message: 'URL already exist!' 
+//         })
+//     }
+//     const result = await collection.insertOne({
+//         url: body.url,
+//         shorturl: body.shorturl
+//     })
+
+//     return Response.json({ 
+//         success: true, 
+//         error: false,  
+//         message: 'URL generated successful' 
+//     })
+// }
+
+import clientPromise from "@/lib/mongodb";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(request) {
+    try {
+        const body = await request.json();
 
-    const body =await request.json();
-    // console.log(body);
-    const client = await clientPromise;
-    const db = client.db("likeitshort");
-    const collection = db.collection("url");
+        const client = await clientPromise;
+        const db = client.db("likeitshort");
+        const collection = db.collection("url");
 
-    console.log("Mongo URI:", process.env.MONGODB_URI);
+        const doc = await collection.findOne({ shorturl: body.shorturl });
+        if (doc) {
+            return Response.json({
+                success: false,
+                error: true,
+                message: "URL already exists!",
+            }, { status: 409 });
+        }
 
+        await collection.insertOne({
+            url: body.url,
+            shorturl: body.shorturl,
+        });
 
-    // check if short url exist
-    const doc = await collection.findOne({shorturl: body.shorturl});
-    if (doc) {
-        return Response.json({ 
-            success: false, 
-            error: true,  
-            message: 'URL already exist!' 
-        })
+        return Response.json({
+            success: true,
+            error: false,
+            message: "URL generated successfully",
+        });
+    } catch (err) {
+        console.error("Generate API error:", err);
+        return Response.json(
+            { success: false, error: true, message: "Internal server error" },
+            { status: 500 }
+        );
     }
-    const result = await collection.insertOne({
-        url: body.url,
-        shorturl: body.shorturl
-    })
-
-    return Response.json({ 
-        success: true, 
-        error: false,  
-        message: 'URL generated successful' 
-    })
 }
